@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ART IN / ART OUT: Computer Aided Graphics • Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+        
+        :root {
+            --accent: #c026ff;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .title-font {
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: -0.02em;
+        }
+
+        .art-card {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                       box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            background: #18181b;
+        }
+        
+        .art-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .art-image {
+            background: #27272a;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                       filter 0.3s ease;
+        }
+        
+        .art-card:hover .art-image {
+            transform: scale(1.03);
+        }
+
+        .modal {
+            animation: modalPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .nav-btn {
+            transition: all 0.1s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: #3f3f46;
+            transform: scale(1.05);
+        }
+
+        .gallery-grid {
+            scrollbar-width: thin;
+            scrollbar-color: #3f3f46 #18181b;
+        }
+
+        .art-badge {
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+        }
+
+        .search-input {
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(192, 38, 255, 0.1);
+        }
+
+        .work-meta {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Header -->
+    <header class="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-lg sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-palette text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="title-font text-3xl font-bold tracking-tighter">ART IN / ART OUT</h1>
+                            <p class="text-xs text-zinc-500 -mt-1">Computer Aided Graphics • 1980</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-4 text-sm">
+                    <div class="px-3 py-1.5 bg-zinc-900 rounded-2xl text-xs flex items-center gap-x-2 border border-zinc-800">
+                        <i class="fa-solid fa-archive text-violet-400"></i>
+                        <span class="font-medium" id="count">101 images</span>
+                    </div>
+                    <div class="text-xs text-zinc-500 hidden md:block">
+                        Ukrainian Institute of Modern Art<br>
+                        Chicago, February–March 1980
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Controls -->
+    <div class="max-w-screen-2xl mx-auto px-6 pt-6 pb-4">
+        <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+            <!-- Search -->
+            <div class="relative w-full md:w-96">
+                <i class="fa-solid fa-search absolute left-4 top-3.5 text-zinc-500"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search artist, title, or technique..." 
+                    class="search-input w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500/50 pl-11 pr-4 py-3 rounded-3xl text-sm placeholder:text-zinc-500 outline-none"
+                    onkeyup="filterAndRender()"
+                >
+            </div>
+            
+            <div class="flex items-center gap-x-3 w-full md:w-auto">
+                <!-- Sort -->
+                <div class="flex items-center gap-x-2 text-sm">
+                    <span class="text-zinc-500 text-xs tracking-widest font-medium px-1">SORT</span>
+                    <select id="sortSelect" onchange="filterAndRender()" 
+                            class="bg-zinc-900 border border-zinc-800 text-sm rounded-2xl px-4 py-2.5 focus:outline-none focus:border-violet-500/50">
+                        <option value="id">Original Number</option>
+                        <option value="artist">Artist A–Z</option>
+                        <option value="title">Title A–Z</option>
+                    </select>
+                </div>
+                
+                <button onclick="resetFilters()" 
+                        class="px-5 py-2.5 text-sm bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-2xl flex items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-undo text-xs"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="max-w-screen-2xl mx-auto px-6 pb-12">
+        <div id="galleryGrid" 
+             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 gallery-grid">
+            <!-- Cards populated by JS -->
+        </div>
+        
+        <div id="noResults" class="hidden text-center py-16">
+            <i class="fa-solid fa-search text-4xl text-zinc-700 mb-4"></i>
+            <p class="text-zinc-400">No works match your search.</p>
+            <button onclick="resetFilters()" class="mt-4 text-violet-400 hover:text-violet-300 text-sm underline">Clear search</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 bg-zinc-950 py-8">
+        <div class="max-w-screen-2xl mx-auto px-6 text-xs text-zinc-500 flex flex-col md:flex-row justify-between items-center gap-y-2">
+            <div>
+                Original exhibit documentation • <span class="font-mono">ART IN / ART OUT: Computer Aided Graphics</span><br>
+                Ukrainian Institute of Modern Art, Chicago • February 1 – March 16, 1980
+            </div>
+            <div class="text-right">
+                Digital gallery navigation • Images preserved from original slide documentation<br>
+                <span class="text-zinc-600">101 images • 101 images</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="modal" onclick="if (event.target.id === 'modal') closeModal()" 
+         class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 md:p-8">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="modal bg-zinc-900 rounded-3xl max-w-[1100px] w-full max-h-[95vh] overflow-hidden border border-zinc-700 shadow-2xl flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/50">
+                <div class="flex items-center gap-x-3">
+                    <div id="modalNumber" 
+                         class="font-mono text-xs tracking-[2px] bg-zinc-800 text-violet-400 px-3 py-1 rounded-2xl"></div>
+                    <div id="modalArtist" class="font-semibold text-lg"></div>
+                </div>
+                
+                <button onclick="toggleFullscreen()" 
+                        class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-2xl transition-colors mr-1"
+                        title="Toggle fullscreen (F)">
+                    <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
+                </button>
+                
+                <button onclick="closeModal()" 
+                        class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Image + Info -->
+            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                <!-- Image Container -->
+                <div class="flex-1 bg-black flex items-center justify-center p-6 lg:p-10 relative min-h-[320px] lg:min-h-0">
+                    <img id="modalImage" 
+                         class="max-w-full max-h-[65vh] lg:max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-zinc-800"
+                         alt="Artwork">
+                    
+                    <!-- Prev / Next on image for desktop -->
+                    <button onclick="prevArtwork()" 
+                            class="nav-btn hidden lg:flex absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-700 rounded-2xl items-center justify-center text-xl">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="nextArtwork()" 
+                            class="nav-btn hidden lg:flex absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-700 rounded-2xl items-center justify-center text-xl">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <!-- Info Sidebar -->
+                <div class="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-zinc-800 bg-zinc-950 p-6 flex flex-col">
+                    <div class="flex-1">
+                        <div id="modalTitle" class="text-2xl leading-tight font-semibold tracking-tight mb-3"></div>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <div class="text-xs uppercase tracking-widest text-zinc-500 mb-px">DATE</div>
+                                <div id="modalDate" class="font-medium"></div>
+                            </div>
+                            
+                            <div id="modalCommentsWrap">
+                                <div class="text-xs uppercase tracking-widest text-zinc-500 mb-px">NOTES / TECHNIQUE</div>
+                                <div id="modalComments" class="text-zinc-300 leading-snug"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <div class="pt-6 mt-auto border-t border-zinc-800 flex items-center justify-between text-sm">
+                        <button onclick="prevArtwork()" 
+                                class="nav-btn flex items-center gap-x-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-2xl">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Previous</span>
+                        </button>
+                        
+                        <div class="font-mono text-xs text-zinc-500 px-3" id="modalPosition"></div>
+                        
+                        <button onclick="nextArtwork()" 
+                                class="nav-btn flex items-center gap-x-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-2xl">
+                            <span>Next</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded artwork data
+        const artworks = [
+  {
+    "id": 1,
+    "artist": "Kolomyjec, William J",
+    "title": "Announcement",
+    "date": "1980",
+    "comments": "",
+    "filename": "AIAO_001.png"
+  },
+  {
+    "id": 2,
+    "artist": "Kolomyjec, William J",
+    "title": "Illustration from Exhibition Catalog",
+    "date": "1980",
+    "comments": "",
+    "filename": "AIAO_002.png"
+  },
+  {
+    "id": 3,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_003.png"
+  },
+  {
+    "id": 4,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Structure Study: Blue, Blue, Red, Brown, Black",
+    "date": "1977",
+    "comments": "(drawing)",
+    "filename": "AIAO_004.png"
+  },
+  {
+    "id": 5,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Structure Study I: Black, Brown",
+    "date": "1977",
+    "comments": "(drawing)",
+    "filename": "AIAO_005.png"
+  },
+  {
+    "id": 6,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Structure Study II: Yellow, Red, Brown, Black",
+    "date": "1977",
+    "comments": "(drawing)",
+    "filename": "AIAO_006.png"
+  },
+  {
+    "id": 7,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Landscape",
+    "date": "1970",
+    "comments": "(drawing)",
+    "filename": "AIAO_007.png"
+  },
+  {
+    "id": 8,
+    "artist": "Truckenbrodt, Joan",
+    "title": "Eastern Reflections",
+    "date": "1979",
+    "comments": "(textile)",
+    "filename": "AIAO_008.png"
+  },
+  {
+    "id": 9,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_009.png"
+  },
+  {
+    "id": 10,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Urban Grass",
+    "date": "1979",
+    "comments": "(comp-i, drawing)",
+    "filename": "AIAO_010.png"
+  },
+  {
+    "id": 11,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Grass",
+    "date": "1979",
+    "comments": "(comp-b, drawing)",
+    "filename": "AIAO_011.png"
+  },
+  {
+    "id": 12,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Urban Grass",
+    "date": "1979",
+    "comments": "(comp-b, drawing)",
+    "filename": "AIAO_012.png"
+  },
+  {
+    "id": 13,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Urban Grass",
+    "date": "1979",
+    "comments": "(comp-e, drawing)",
+    "filename": "AIAO_013.png"
+  },
+  {
+    "id": 14,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_014.png"
+  },
+  {
+    "id": 15,
+    "artist": "Truckenbrod, Joan",
+    "title": "Curvilinear Perspective",
+    "date": "1979",
+    "comments": "(textile)",
+    "filename": "AIAO_015.png"
+  },
+  {
+    "id": 16,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Urban Grass",
+    "date": "1979",
+    "comments": "(comp-d, drawing)",
+    "filename": "AIAO_016.png"
+  },
+  {
+    "id": 17,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Grass",
+    "date": "1979",
+    "comments": "(comp-a, drawing)",
+    "filename": "AIAO_017.png"
+  },
+  {
+    "id": 18,
+    "artist": "Bangert, Collette and Charles",
+    "title": "Structure Study I: Black, Brown",
+    "date": "1977",
+    "comments": "(drawing)",
+    "filename": "AIAO_018.png"
+  },
+  {
+    "id": 19,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_019.png"
+  },
+  {
+    "id": 20,
+    "artist": "Cogart, Roger",
+    "title": "Logic Grid Construction #2",
+    "date": "",
+    "comments": "(Photograph)",
+    "filename": "AIAO_020.png"
+  },
+  {
+    "id": 21,
+    "artist": "Cogart, Roger",
+    "title": "Logic Grid Construction #1",
+    "date": "",
+    "comments": "(Photograph)",
+    "filename": "AIAO_021.png"
+  },
+  {
+    "id": 22,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_022.png"
+  },
+  {
+    "id": 23,
+    "artist": "Fetter, William",
+    "title": "Carbondale, Illinois Counties in Hemispherical Projection",
+    "date": "no date",
+    "comments": "(photograph of plotter)",
+    "filename": "AIAO_023.png"
+  },
+  {
+    "id": 24,
+    "artist": "Fetter, William",
+    "title": "Carbondale, Polygonal Woman",
+    "date": "no date",
+    "comments": "(photograph of plotter)",
+    "filename": "AIAO_024.png"
+  },
+  {
+    "id": 25,
+    "artist": "Fetter, William",
+    "title": "Carbondale, Polygonal Man and Woman in Hemispherical Projection",
+    "date": "no date",
+    "comments": "(photograph of plotter)",
+    "filename": "AIAO_025.png"
+  },
+  {
+    "id": 26,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_026.png"
+  },
+  {
+    "id": 27,
+    "artist": "Franke, Herbert W",
+    "title": "Total Oscillation",
+    "date": "no date",
+    "comments": "(serigraph)",
+    "filename": "AIAO_027.png"
+  },
+  {
+    "id": 28,
+    "artist": "Franke, Herbert W",
+    "title": "Line Oscillation",
+    "date": "no date",
+    "comments": "(serigraph)",
+    "filename": "AIAO_028.png"
+  },
+  {
+    "id": 29,
+    "artist": "Franke, Herbert W",
+    "title": "Fragmented color imagery #1",
+    "date": "no date",
+    "comments": "(color dot matrix printer output)",
+    "filename": "AIAO_029.png"
+  },
+  {
+    "id": 30,
+    "artist": "Franke, Herbert W",
+    "title": "Fragmented color imagery #2",
+    "date": "no date",
+    "comments": "(color dot matrix printer output)",
+    "filename": "AIAO_030.png"
+  },
+  {
+    "id": 31,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_031.png"
+  },
+  {
+    "id": 32,
+    "artist": "Giorgini, Aldo",
+    "title": "Folio 3 (Flag)",
+    "date": "1975",
+    "comments": "(color serigraph)",
+    "filename": "AIAO_032.png"
+  },
+  {
+    "id": 33,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_033.png"
+  },
+  {
+    "id": 34,
+    "artist": "Giorgini, Aldo",
+    "title": "X",
+    "date": "1978",
+    "comments": "(serigraph)",
+    "filename": "AIAO_034.png"
+  },
+  {
+    "id": 35,
+    "artist": "Giorgini, Aldo",
+    "title": "Claustrophobia",
+    "date": "1978",
+    "comments": "(serigraph)",
+    "filename": "AIAO_035.png"
+  },
+  {
+    "id": 36,
+    "artist": "Giorgini, Aldo",
+    "title": "Turbulent Communication",
+    "date": "1978",
+    "comments": "(serigraph)",
+    "filename": "AIAO_036.png"
+  },
+  {
+    "id": 37,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_037.png"
+  },
+  {
+    "id": 38,
+    "artist": "Helmick, Richard",
+    "title": "Sun Dance II",
+    "date": "no date",
+    "comments": "(screenprint)",
+    "filename": "AIAO_038.png"
+  },
+  {
+    "id": 39,
+    "artist": "Helmick, Richard",
+    "title": "Canyons II",
+    "date": "no date",
+    "comments": "(screenprint)",
+    "filename": "AIAO_039.png"
+  },
+  {
+    "id": 40,
+    "artist": "Helmick, Richard",
+    "title": "Canyons",
+    "date": "no date",
+    "comments": "(screenprint)",
+    "filename": "AIAO_040.png"
+  },
+  {
+    "id": 41,
+    "artist": "Helmick, Richard",
+    "title": "Deck",
+    "date": "no date",
+    "comments": "(screenprint)",
+    "filename": "AIAO_041.png"
+  },
+  {
+    "id": 42,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_042.png"
+  },
+  {
+    "id": 43,
+    "artist": "Hertlein, Grace",
+    "title": "Trees",
+    "date": "no date",
+    "comments": "(direct plotter drawing, ink on acetate)",
+    "filename": "AIAO_043.png"
+  },
+  {
+    "id": 44,
+    "artist": "Hertlein, Grace",
+    "title": "Sketch of the City",
+    "date": "no date",
+    "comments": "(direct plotter drawing, ink on acetate)",
+    "filename": "AIAO_044.png"
+  },
+  {
+    "id": 45,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_045.png"
+  },
+  {
+    "id": 46,
+    "artist": "Knowlton, Ken",
+    "title": "EXPLOR Image",
+    "date": "no date",
+    "comments": "(serigraph)",
+    "filename": "AIAO_046.png"
+  },
+  {
+    "id": 47,
+    "artist": "Knowlton, Ken",
+    "title": "Universal Declaration of Human Rights",
+    "date": "no date",
+    "comments": "(serigraph)",
+    "filename": "AIAO_047.png"
+  },
+  {
+    "id": 48,
+    "artist": "Knowlton, Ken",
+    "title": "EXPLOR Image",
+    "date": "no date",
+    "comments": "(serigraph)",
+    "filename": "AIAO_048.png"
+  },
+  {
+    "id": 49,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_049.png"
+  },
+  {
+    "id": 50,
+    "artist": "Kolomyjec, William J",
+    "title": "Creature Tunnel",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_050.png"
+  },
+  {
+    "id": 51,
+    "artist": "Kolomyjec, William J",
+    "title": "Scorpion Spin",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_051.png"
+  },
+  {
+    "id": 52,
+    "artist": "Kolomyjec, William J",
+    "title": "Geese",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_052.png"
+  },
+  {
+    "id": 53,
+    "artist": "Kolomyjec, William J",
+    "title": "Le Mort\u00e9 de Beardsley (Peacock)",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_053.png"
+  },
+  {
+    "id": 54,
+    "artist": "Kolomyjec, William J",
+    "title": "Kolomyjec's Moir\u00e9",
+    "date": "1973",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_054.png"
+  },
+  {
+    "id": 55,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_055.png"
+  },
+  {
+    "id": 56,
+    "artist": "Kolomyjec, William J",
+    "title": "Coming and Going",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_056.png"
+  },
+  {
+    "id": 57,
+    "artist": "Kolomyjec, William J",
+    "title": "Horizons",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_057.png"
+  },
+  {
+    "id": 58,
+    "artist": "Kolomyjec, William J",
+    "title": "Struggle between Good and Evil",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_058.png"
+  },
+  {
+    "id": 59,
+    "artist": "Kolomyjec, William J",
+    "title": "Banana Cone",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_059.png"
+  },
+  {
+    "id": 60,
+    "artist": "Kolomyjec, William J",
+    "title": "That Walleye\u2019s Got a Lotta Gull",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_060.png"
+  },
+  {
+    "id": 61,
+    "artist": "Leavitt, Ruth",
+    "title": "Diamond Variation II, 1975",
+    "date": "",
+    "comments": "(serigraph)",
+    "filename": "AIAO_061.png"
+  },
+  {
+    "id": 62,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_062.png"
+  },
+  {
+    "id": 63,
+    "artist": "Leavitt, Ruth",
+    "title": "From Blue to Yellow, no date",
+    "date": "no date",
+    "comments": "(photograph, 1 of a series of 8)",
+    "filename": "AIAO_063.png"
+  },
+  {
+    "id": 64,
+    "artist": "Leavitt, Ruth",
+    "title": "Sculpture Studies, no date",
+    "date": "no date",
+    "comments": "(3 xerographs)",
+    "filename": "AIAO_064.png"
+  },
+  {
+    "id": 65,
+    "artist": "Leavitt, Ruth",
+    "title": "Untitled, no date",
+    "date": "no date",
+    "comments": "(computer designed and milled relief sculpture)",
+    "filename": "AIAO_065.png"
+  },
+  {
+    "id": 66,
+    "artist": "Mallary, Robert",
+    "title": "TRPL Series, 1972",
+    "date": "",
+    "comments": "(one color plotter drawing)",
+    "filename": "AIAO_066.png"
+  },
+  {
+    "id": 67,
+    "artist": "Mallary, Robert",
+    "title": "GRAF/1 Series, 1972",
+    "date": "",
+    "comments": "(three color plotter drawing)",
+    "filename": "AIAO_067.png"
+  },
+  {
+    "id": 68,
+    "artist": "Mallary, Robert",
+    "title": "TRPL Series, 1972",
+    "date": "",
+    "comments": "(two color plotter drawing)",
+    "filename": "AIAO_068.png"
+  },
+  {
+    "id": 69,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_069.png"
+  },
+  {
+    "id": 70,
+    "artist": "Manning, Edward",
+    "title": "Homage to V",
+    "date": "van Gogh - \"The Starry Night.\" 1979",
+    "comments": "(blocpix quantized image, coarse resolution)",
+    "filename": "AIAO_070.png"
+  },
+  {
+    "id": 71,
+    "artist": "Manning, Edward",
+    "title": "Homage to V",
+    "date": "van Gogh - \"The Starry Night.\" 1979",
+    "comments": "(blocpix quantized image, medium resolution)",
+    "filename": "AIAO_071.png"
+  },
+  {
+    "id": 72,
+    "artist": "Manning, Edward",
+    "title": "Homage to V",
+    "date": "van Gogh - \"The Starry Night.\" 1979",
+    "comments": "(blocpix quantized image, fine resolution)",
+    "filename": "AIAO_072.png"
+  },
+  {
+    "id": 73,
+    "artist": "Knowlton, Ken and Harmon, Leon",
+    "title": "Reclining Nude",
+    "date": "1966",
+    "comments": "(photo reduction by Ed Manning)",
+    "filename": "AIAO_073.png"
+  },
+  {
+    "id": 74,
+    "artist": "Manning, Edward",
+    "title": "Reclining Nude a la blocpix",
+    "date": "1979",
+    "comments": "(photograph)",
+    "filename": "AIAO_074.png"
+  },
+  {
+    "id": 75,
+    "artist": "Manning, Edward",
+    "title": "Victor Vasarely a la blocpix",
+    "date": "1979",
+    "comments": "(photograph)",
+    "filename": "AIAO_075.png"
+  },
+  {
+    "id": 76,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_076.png"
+  },
+  {
+    "id": 77,
+    "artist": "Marcus, Aaron",
+    "title": "Shades of Hades",
+    "date": "1972/74",
+    "comments": "(color lithograph)",
+    "filename": "AIAO_077.png"
+  },
+  {
+    "id": 78,
+    "artist": "Marcus, Aaron",
+    "title": "Urbane Nova",
+    "date": "1972/74",
+    "comments": "(color lithograph)",
+    "filename": "AIAO_078.png"
+  },
+  {
+    "id": 79,
+    "artist": "Marcus, Aaron",
+    "title": "Evolving Gravity",
+    "date": "1972/74",
+    "comments": "(color lithograph)",
+    "filename": "AIAO_079.png"
+  },
+  {
+    "id": 80,
+    "artist": "Marcus, Aaron",
+    "title": "Radioactive Jukebox",
+    "date": "1972/74",
+    "comments": "(color lithograph)",
+    "filename": "AIAO_080.png"
+  },
+  {
+    "id": 81,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_081.png"
+  },
+  {
+    "id": 82,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_082.png"
+  },
+  {
+    "id": 83,
+    "artist": "McMahon, Kevin",
+    "title": "Perception",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_083.png"
+  },
+  {
+    "id": 84,
+    "artist": "McMahon, Kevin",
+    "title": "Sun's Edge",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_084.png"
+  },
+  {
+    "id": 85,
+    "artist": "McMahon, Kevin",
+    "title": "Ascent",
+    "date": "1979",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_085.png"
+  },
+  {
+    "id": 86,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_086.png"
+  },
+  {
+    "id": 87,
+    "artist": "Molnar, Vera",
+    "title": "Untitled",
+    "date": "1976",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_087.png"
+  },
+  {
+    "id": 88,
+    "artist": "Molnar, Vera",
+    "title": "Untitled",
+    "date": "1976",
+    "comments": "(plotter drawing)",
+    "filename": "AIAO_088.png"
+  },
+  {
+    "id": 89,
+    "artist": "Molnar, Vera",
+    "title": "Untitled",
+    "date": "1976",
+    "comments": "(serigraph from plotter drawing)",
+    "filename": "AIAO_089.png"
+  },
+  {
+    "id": 90,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_090.png"
+  },
+  {
+    "id": 91,
+    "artist": "Pallas, James",
+    "title": "Moonbark",
+    "date": "1978",
+    "comments": "(electronic sculpture)",
+    "filename": "AIAO_091.png"
+  },
+  {
+    "id": 92,
+    "artist": "Pallas, James",
+    "title": "Rocket Flower",
+    "date": "1978",
+    "comments": "(electronic sculpture)",
+    "filename": "AIAO_092.png"
+  },
+  {
+    "id": 93,
+    "artist": "Pallas, James",
+    "title": "Song for Luke",
+    "date": "1976",
+    "comments": "(electronic sculpture)",
+    "filename": "AIAO_093.png"
+  },
+  {
+    "id": 94,
+    "artist": "Truckenbrodt, Joan",
+    "title": "Relativistic Observer",
+    "date": "1978",
+    "comments": "(textile)",
+    "filename": "AIAO_094.png"
+  },
+  {
+    "id": 95,
+    "artist": "Various / Grouping",
+    "title": "Grouping slide (see original catalog)",
+    "date": "",
+    "comments": "",
+    "filename": "AIAO_095.png"
+  },
+  {
+    "id": 96,
+    "artist": "Palyka, Duane",
+    "title": "Sparkle Sequence #18",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_096.png"
+  },
+  {
+    "id": 97,
+    "artist": "Palyka, Duane",
+    "title": "Picasso 2 #22",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_097.png"
+  },
+  {
+    "id": 98,
+    "artist": "Palyka, Duane",
+    "title": "Tall Movement #15",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_098.png"
+  },
+  {
+    "id": 99,
+    "artist": "Palyka, Duane",
+    "title": "Stretched Movement #16",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_099.png"
+  },
+  {
+    "id": 100,
+    "artist": "Palyka, Duane",
+    "title": "Slightly Orange Figure with Blue #27",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_100.png"
+  },
+  {
+    "id": 101,
+    "artist": "Palyka, Duane",
+    "title": "Blue Figure with Orange Guards #26",
+    "date": "",
+    "comments": "(photograph of a frame buffer image)",
+    "filename": "AIAO_101.png"
+  }
+];;
+        
+        let currentFiltered = [...artworks];
+        let currentModalIndex = 0;
+        let currentFilter = '';
+
+        function createCard(art) {
+            const card = document.createElement('div');
+            card.className = `art-card group cursor-pointer rounded-3xl overflow-hidden border border-zinc-800 flex flex-col`;
+            card.innerHTML = `
+                <div class="relative aspect-[4/3] bg-zinc-900 overflow-hidden">
+                    <img src="images/${art.filename}" 
+                         alt="${art.title} by ${art.artist}"
+                         class="art-image w-full h-full object-contain p-3"
+                         loading="lazy">
+                    
+                    <div class="absolute top-3 left-3">
+                        <div class="art-badge font-mono bg-black/70 text-violet-400 px-2.5 py-px rounded-2xl border border-violet-900/50">
+                            #${String(art.id).padStart(3, '0')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 flex-1 flex flex-col">
+                    <div class="font-semibold text-[15px] leading-snug tracking-tight mb-1 line-clamp-2">
+                        ${art.title}
+                    </div>
+                    <div class="text-sm text-zinc-400 mb-auto">
+                        ${art.artist}
+                    </div>
+                    
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800 text-xs">
+                        <div class="text-zinc-500 font-medium">
+                            ${art.date || '—'}
+                        </div>
+                        ${art.comments ? `
+                            <div class="px-2 py-0.5 bg-zinc-800 text-[10px] rounded-2xl text-zinc-400 max-w-[55%] truncate" title="${art.comments}">
+                                ${art.comments.replace(/[()]/g, '')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            card.onclick = () => openModal(art.id);
+            return card;
+        }
+
+        function renderGrid(arts) {
+            const grid = document.getElementById('galleryGrid');
+            const noResults = document.getElementById('noResults');
+            grid.innerHTML = '';
+            
+            if (arts.length === 0) {
+                noResults.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+                grid.classList.remove('hidden');
+            }
+            
+            arts.forEach(art => {
+                grid.appendChild(createCard(art));
+            });
+            
+            document.getElementById('count').innerHTML = `${arts.length} works`;
+        }
+
+        function filterAndRender() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const sortMode = document.getElementById('sortSelect').value;
+            
+            currentFilter = searchTerm;
+            
+            let filtered = artworks;
+            
+            if (searchTerm) {
+                filtered = artworks.filter(art => 
+                    art.artist.toLowerCase().includes(searchTerm) ||
+                    art.title.toLowerCase().includes(searchTerm) ||
+                    (art.comments && art.comments.toLowerCase().includes(searchTerm)) ||
+                    String(art.id).includes(searchTerm)
+                );
+            }
+            
+            // Sort
+            if (sortMode === 'artist') {
+                filtered.sort((a, b) => a.artist.localeCompare(b.artist));
+            } else if (sortMode === 'title') {
+                filtered.sort((a, b) => a.title.localeCompare(b.title));
+            } else {
+                // default id
+                filtered.sort((a, b) => a.id - b.id);
+            }
+            
+            currentFiltered = filtered;
+            renderGrid(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortSelect').value = 'id';
+            currentFilter = '';
+            currentFiltered = [...artworks];
+            currentFiltered.sort((a, b) => a.id - b.id);
+            renderGrid(currentFiltered);
+        }
+
+        // Modal functions
+        function openModal(artId) {
+            const art = artworks.find(a => a.id === artId);
+            if (!art) return;
+            
+            // Find index in current filtered list for navigation
+            currentModalIndex = currentFiltered.findIndex(a => a.id === artId);
+            if (currentModalIndex === -1) currentModalIndex = 0;
+            
+            updateModalContent(art);
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+            
+            // Keyboard support
+            document.onkeydown = handleModalKey;
+        }
+        
+        function updateModalContent(art) {
+            document.getElementById('modalImage').src = `images/${art.filename}`;
+            document.getElementById('modalImage').alt = `${art.title} by ${art.artist}`;
+            
+            document.getElementById('modalNumber').innerHTML = `#${String(art.id).padStart(3, '0')}`;
+            document.getElementById('modalArtist').innerHTML = art.artist;
+            document.getElementById('modalTitle').innerHTML = art.title;
+            document.getElementById('modalDate').innerHTML = art.date || 'Date unknown';
+            
+            const commentsEl = document.getElementById('modalComments');
+            const wrap = document.getElementById('modalCommentsWrap');
+            
+            if (art.comments) {
+                commentsEl.innerHTML = art.comments;
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
+            }
+            
+            // Position indicator
+            const posEl = document.getElementById('modalPosition');
+            posEl.innerHTML = `${currentModalIndex + 1} / ${currentFiltered.length}`;
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.onkeydown = null;
+            
+            // Exit fullscreen if active when closing modal
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        }
+        
+        function toggleFullscreen() {
+            const modal = document.getElementById('modal');
+            const icon = document.getElementById('fullscreenIcon');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                if (modal.requestFullscreen) {
+                    modal.requestFullscreen();
+                } else if (modal.webkitRequestFullscreen) {
+                    modal.webkitRequestFullscreen();
+                } else if (modal.msRequestFullscreen) {
+                    modal.msRequestFullscreen();
+                }
+                icon.classList.remove('fa-expand');
+                icon.classList.add('fa-compress');
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                icon.classList.remove('fa-compress');
+                icon.classList.add('fa-expand');
+            }
+        }
+        
+        // Update icon when user exits fullscreen with ESC or other means
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            if (icon) {
+                if (document.fullscreenElement) {
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+        });
+        
+        function navigateModal(direction) {
+            currentModalIndex = (currentModalIndex + direction + currentFiltered.length) % currentFiltered.length;
+            const nextArt = currentFiltered[currentModalIndex];
+            updateModalContent(nextArt);
+        }
+        
+        function prevArtwork() {
+            navigateModal(-1);
+        }
+        
+        function nextArtwork() {
+            navigateModal(1);
+        }
+        
+        function handleModalKey(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowLeft') {
+                prevArtwork();
+            } else if (e.key === 'ArrowRight') {
+                nextArtwork();
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            }
+        }
+        
+        // Initialize
+        function init() {
+            // Initial sort by id
+            currentFiltered = [...artworks].sort((a, b) => a.id - b.id);
+            renderGrid(currentFiltered);
+            
+            // Bonus: allow Enter in search to focus first result (optional)
+            const search = document.getElementById('searchInput');
+            search.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && currentFiltered.length > 0) {
+                    openModal(currentFiltered[0].id);
+                }
+            });
+            
+            // Initial count
+            document.getElementById('count').innerHTML = `${artworks.length} works`;
+            
+            // Easter egg: click logo to shuffle
+            const logo = document.querySelector('.fa-palette');
+            if (logo) {
+                logo.parentElement.style.cursor = 'pointer';
+                logo.parentElement.onclick = () => {
+                    currentFiltered = [...artworks].sort(() => Math.random() - 0.5);
+                    renderGrid(currentFiltered);
+                };
+            }
+            
+            console.log('%c[Gallery] ART IN / ART OUT ready — 101 images loaded', 'color:#666');
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
